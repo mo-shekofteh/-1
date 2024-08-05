@@ -6,28 +6,30 @@
     <title>Like Button Example</title>
     <style>
         body {
-            font-family: 'Courier New', monospace;
+            font-family: 'Courier New', monospace; /* Preserved font-family */
             line-height: 1.5;
-            background-color: transparent;
-            color: #e3e3e3;
-            text-align: center;
-            margin: 0;
-            padding: 0;
+            background-color: transparent; /* Transparent background for the body */
+            color: #e3e3e3; /* Text colour */
+            text-align: center; /* Centre-align the content */
+            margin: 0; /* Remove default margin */
+            padding: 0; /* Remove default padding */
         }
 
         .like-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 2vw;
-            margin-top: 2vw;
+            font-family: 'Courier New', monospace; /* Preserved font-family */
+            display: flex; /* Use flexbox for horizontal layout */
+            align-items: center; /* Vertically centre the items */
+            justify-content: center; /* Horizontally centre the items */
+            gap: 2vw; /* Space between the button and the count */
+            margin-top: 2vw; /* Space above the container */
         }
 
         .like-button {
-            font-size: 1em;
-            color: #6e6e6e;
-            background-color: transparent;
-            border: 0.2vw solid #6e6e6e;
+            font-family: 'Courier New', monospace; /* Preserved font-family */
+            font-size: 1em; /* Base font size to be adjusted by JavaScript */
+            color: #6e6e6e; /* Text colour */
+            background-color: transparent; /* Transparent background */
+            border: 0.2vw solid #6e6e6e; /* Border for visibility */
             padding: 1vw 2vw;
             cursor: pointer;
             border-radius: 0.5vw;
@@ -35,14 +37,15 @@
         }
 
         .like-button:hover {
-            background-color: #c4c4c4;
+            background-color: #c4c4c4; /* Slightly visible background on hover */
         }
 
         .like-count {
-            font-size: 1em;
-            color: #6e6e6e;
-            background-color: transparent;
-            border: none;
+            font-family: 'Courier New', monospace; /* Preserved font-family */
+            font-size: 1em; /* Base font size to be adjusted by JavaScript */
+            color: #6e6e6e; /* Text colour */
+            background-color: transparent; /* Transparent background */
+            border: none; /* Remove border */
         }
     </style>
 </head>
@@ -54,9 +57,8 @@
     </div>
 
     <script>
-
         
-        const binUrl = 'https://api.jsonbin.io/v3/b/66b12acdacd3cb34a8706047'; // Your bin URL
+        const binUrl = 'https://api.jsonbin.io/v3/b/66b133ceacd3cb34a870634d'; // Your bin URL
         const accessKey = '$2a$10$j7w858/cQZ4hnHrR96gA3OF01dKes57RVCrok87f2PD8NlvJfVb.6'; // Your access key
 
 
@@ -64,52 +66,42 @@
 
 
         
-        async function getLikeCount() {
-            try {
-                const response = await fetch(binUrl, {
-                    headers: {
-                        'X-Access-Key': accessKey
-                    }
-                });
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
+        function getLikeCount() {
+            return fetch(binUrl, {
+                headers: {
+                    'X-Access-Key': accessKey
                 }
-                const data = await response.json();
-                return data.record.likeCount;
-            } catch (error) {
-                console.error('Failed to fetch like count:', error);
-                return 0; // Return 0 if there's an error
-            }
+            }).then(response => response.json())
+              .then(data => data.record.likeCount)
+              .catch(error => {
+                  console.error('Failed to fetch like count:', error);
+                  return 0;
+              });
         }
 
-        async function updateLikeCount(newCount) {
-            try {
-                await fetch(binUrl, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Access-Key': accessKey
-                    },
-                    body: JSON.stringify({ likeCount: newCount })
-                });
-            } catch (error) {
+        function updateLikeCount(newCount) {
+            return fetch(binUrl, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Access-Key': accessKey
+                },
+                body: JSON.stringify({ likeCount: newCount })
+            }).catch(error => {
                 console.error('Failed to update like count:', error);
-            }
-        }
-
-        function getLocalStorageKey() {
-            return `likedIPs_${binUrl}`;
+            });
         }
 
         function getLikedIPs() {
-            return JSON.parse(localStorage.getItem(getLocalStorageKey())) || [];
+            const likedIPs = JSON.parse(localStorage.getItem(`likedIPs-${binUrl}`)) || [];
+            return likedIPs;
         }
 
         function updateLikedIPs(likedIPs) {
-            localStorage.setItem(getLocalStorageKey(), JSON.stringify(likedIPs));
+            localStorage.setItem(`likedIPs-${binUrl}`, JSON.stringify(likedIPs));
         }
 
-        async function getUserIP() {
+        function getUserIP() {
             return new Promise((resolve, reject) => {
                 const xhr = new XMLHttpRequest();
                 xhr.open('GET', 'https://api.ipify.org?format=json', true);
@@ -117,41 +109,43 @@
                     if (xhr.readyState === 4 && xhr.status === 200) {
                         const ip = JSON.parse(xhr.responseText).ip;
                         resolve(ip);
-                    } else if (xhr.readyState === 4) {
-                        reject(new Error('Failed to get IP address'));
                     }
                 };
                 xhr.send();
             });
         }
 
-        document.addEventListener('DOMContentLoaded', async () => {
-            const likeCountElement = document.getElementById('likeCount');
-            let likeCount = await getLikeCount();
-            likeCountElement.textContent = likeCount;
+        // Initialize like count on page load
+        getLikeCount().then(count => {
+            document.getElementById('likeCount').textContent = count;
+        });
 
-            const ip = await getUserIP();
-            const likedIPs = getLikedIPs();
-
-            document.getElementById('likeButton').addEventListener('click', async () => {
+        document.getElementById('likeButton').addEventListener('click', function() {
+            getUserIP().then(ip => {
+                const likedIPs = getLikedIPs();
                 if (!likedIPs.includes(ip)) {
-                    likeCount++;
-                    likeCountElement.textContent = likeCount;
-                    await updateLikeCount(likeCount);
-                    likedIPs.push(ip);
-                    updateLikedIPs(likedIPs);
+                    getLikeCount().then(currentCount => {
+                        const newCount = currentCount + 1;
+                        updateLikeCount(newCount).then(() => {
+                            document.getElementById('likeCount').textContent = newCount;
+                            likedIPs.push(ip);
+                            updateLikedIPs(likedIPs);
+                        });
+                    });
                 } else {
                     alert('You have already liked this.');
                 }
             });
         });
 
+        // Adjust font size based on container size
         function adjustFontSize() {
             const container = document.getElementById('likeContainer');
-            const fontSize = container.offsetWidth * 0.15;
+            const fontSize = container.offsetWidth * 0.15; // Adjust this multiplier as needed for larger font
             container.style.fontSize = fontSize + 'px';
         }
 
+        // Adjust font size on load and on resize
         window.addEventListener('load', adjustFontSize);
         window.addEventListener('resize', adjustFontSize);
     </script>
