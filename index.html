@@ -16,7 +16,6 @@
         }
 
         .like-container {
-            font-family: 'Courier New', monospace;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -25,7 +24,6 @@
         }
 
         .like-button {
-            font-family: 'Courier New', monospace;
             font-size: 1em;
             color: #6e6e6e;
             background-color: transparent;
@@ -41,7 +39,6 @@
         }
 
         .like-count {
-            font-family: 'Courier New', monospace;
             font-size: 1em;
             color: #6e6e6e;
             background-color: transparent;
@@ -57,10 +54,16 @@
     </div>
 
     <script>
-        const binUrl = 'https://api.jsonbin.io/v3/b/66b133ceacd3cb34a870634d'; // Your bin URL
+
+        
+        const binUrl = 'https://api.jsonbin.io/v3/b/66b12acdacd3cb34a8706047'; // Your bin URL
         const accessKey = '$2a$10$j7w858/cQZ4hnHrR96gA3OF01dKes57RVCrok87f2PD8NlvJfVb.6'; // Your access key
 
-        // Function to get the current like count from jsonbin.io
+
+
+
+
+        
         async function getLikeCount() {
             try {
                 const response = await fetch(binUrl, {
@@ -79,7 +82,6 @@
             }
         }
 
-        // Function to update the like count on jsonbin.io
         async function updateLikeCount(newCount) {
             try {
                 await fetch(binUrl, {
@@ -95,36 +97,61 @@
             }
         }
 
-        // Initialise the like count
+        function getLocalStorageKey() {
+            return `likedIPs_${binUrl}`;
+        }
+
+        function getLikedIPs() {
+            return JSON.parse(localStorage.getItem(getLocalStorageKey())) || [];
+        }
+
+        function updateLikedIPs(likedIPs) {
+            localStorage.setItem(getLocalStorageKey(), JSON.stringify(likedIPs));
+        }
+
+        async function getUserIP() {
+            return new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhr.open('GET', 'https://api.ipify.org?format=json', true);
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState === 4 && xhr.status === 200) {
+                        const ip = JSON.parse(xhr.responseText).ip;
+                        resolve(ip);
+                    } else if (xhr.readyState === 4) {
+                        reject(new Error('Failed to get IP address'));
+                    }
+                };
+                xhr.send();
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', async () => {
             const likeCountElement = document.getElementById('likeCount');
             let likeCount = await getLikeCount();
             likeCountElement.textContent = likeCount;
 
-            // Check if the user has already liked
-            const hasLiked = localStorage.getItem('hasLiked');
+            const ip = await getUserIP();
+            const likedIPs = getLikedIPs();
 
-            // Add event listener to the like button
             document.getElementById('likeButton').addEventListener('click', async () => {
-                if (!hasLiked) {
+                if (!likedIPs.includes(ip)) {
                     likeCount++;
                     likeCountElement.textContent = likeCount;
                     await updateLikeCount(likeCount);
-                    localStorage.setItem('hasLiked', 'true'); // Mark as liked
+                    likedIPs.push(ip);
+                    updateLikedIPs(likedIPs);
                 } else {
                     alert('You have already liked this.');
                 }
             });
         });
 
-        // Function to adjust font size based on container size
         function adjustFontSize() {
             const container = document.getElementById('likeContainer');
             const fontSize = container.offsetWidth * 0.15;
             container.style.fontSize = fontSize + 'px';
         }
 
-        // Adjust font size on load and on resize
         window.addEventListener('load', adjustFontSize);
         window.addEventListener('resize', adjustFontSize);
     </script>
