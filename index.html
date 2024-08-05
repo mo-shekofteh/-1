@@ -57,9 +57,11 @@
     </div>
 
     <script>
+
         
         const binUrl = 'https://api.jsonbin.io/v3/b/66b133ceacd3cb34a870634d'; // Your bin URL
         const accessKey = '$2a$10$j7w858/cQZ4hnHrR96gA3OF01dKes57RVCrok87f2PD8NlvJfVb.6'; // Your access key
+
 
 
 
@@ -109,6 +111,8 @@
                     if (xhr.readyState === 4 && xhr.status === 200) {
                         const ip = JSON.parse(xhr.responseText).ip;
                         resolve(ip);
+                    } else {
+                        reject('Failed to retrieve IP address');
                     }
                 };
                 xhr.send();
@@ -135,6 +139,9 @@
                 } else {
                     alert('You have already liked this.');
                 }
+            }).catch(error => {
+                console.error(error);
+                alert('Unable to get IP address.');
             });
         });
 
