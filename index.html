@@ -58,6 +58,9 @@
     </div>
 
     <script>
+        const binUrl = 'https://api.jsonbin.io/v3/b/66b12acdacd3cb34a8706047'; // Update with your bin URL
+        const accessKey = '$2a$10$j7w858/cQZ4hnHrR96gA3OF01dKes57RVCrok87f2PD8NlvJfVb.6'; // Update with your access key
+
         // Function to get the user's IP address
         function getUserIP(callback) {
             const xhr = new XMLHttpRequest();
@@ -71,29 +74,59 @@
             xhr.send();
         }
 
-        // Retrieve the current like count from localStorage
-        let likeCount = parseInt(localStorage.getItem('likeCount')) || 0;
+        // Retrieve the current like count from your bin
+        function fetchLikeCount() {
+            fetch(binUrl, {
+                method: 'GET',
+                headers: {
+                    'X-Access-Key': accessKey,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('likeCount').textContent = data.likeCount;
+            })
+            .catch(error => console.error('Error:', error));
+        }
 
-        // Display the like count
-        document.getElementById('likeCount').textContent = likeCount;
+        fetchLikeCount(); // Load the like count on page load
 
         // Add event listener to the like button
         document.getElementById('likeButton').addEventListener('click', function() {
             getUserIP(function(ip) {
-                // Check if the user's IP address is already stored
-                const likedIPs = JSON.parse(localStorage.getItem('likedIPs')) || [];
-                if (!likedIPs.includes(ip)) {
-                    likeCount++;
-                    // Update localStorage with the new like count
-                    localStorage.setItem('likeCount', likeCount);
-                    // Update the displayed like count
-                    document.getElementById('likeCount').textContent = likeCount;
-                    // Store the user's IP address in localStorage
-                    likedIPs.push(ip);
-                    localStorage.setItem('likedIPs', JSON.stringify(likedIPs));
-                } else {
-                    alert('You have already liked this.');
-                }
+                fetch(binUrl, {
+                    method: 'GET',
+                    headers: {
+                        'X-Access-Key': accessKey,
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    const likedIPs = data.likedIPs || [];
+                    if (!likedIPs.includes(ip)) {
+                        data.likeCount++;
+                        likedIPs.push(ip);
+
+                        fetch(binUrl, {
+                            method: 'PUT',
+                            headers: {
+                                'X-Access-Key': accessKey,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ likeCount: data.likeCount, likedIPs: likedIPs })
+                        })
+                        .then(response => response.json())
+                        .then(() => {
+                            document.getElementById('likeCount').textContent = data.likeCount;
+                        })
+                        .catch(error => console.error('Error:', error));
+                    } else {
+                        alert('You have already liked this.');
+                    }
+                })
+                .catch(error => console.error('Error:', error));
             });
         });
 
