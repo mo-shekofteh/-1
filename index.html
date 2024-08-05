@@ -74,7 +74,7 @@
         // Function to fetch the like count from the bin
         function fetchLikeCountFromBin() {
             const xhr = new XMLHttpRequest();
-            xhr.open('GET', 'https://api.jsonbin.io/v3/b/66b12acdacd3cb34a8706047', true);
+            xhr.open('GET', 'https://api.jsonbin.io/v3/b/66b133ceacd3cb34a870634d', true);
             xhr.setRequestHeader('X-Access-Key', 'your-access-key-here'); // Replace with your actual access key
             xhr.onreadystatechange = function() {
                 if (xhr.readyState === 4 && xhr.status === 200) {
@@ -88,7 +88,7 @@
         // Function to update the like count in the bin
         function updateLikeCountInBin(likeCount) {
             const xhr = new XMLHttpRequest();
-            xhr.open('PUT', 'https://api.jsonbin.io/v3/b/66b12acdacd3cb34a8706047', true);
+            xhr.open('PUT', 'https://api.jsonbin.io/v3/b/66b133ceacd3cb34a870634d', true);
             xhr.setRequestHeader('Content-Type', 'application/json');
             xhr.setRequestHeader('X-Access-Key', 'your-access-key-here'); // Replace with your actual access key
             xhr.send(JSON.stringify({ likeCount: likeCount }));
