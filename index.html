@@ -71,11 +71,31 @@
             xhr.send();
         }
 
-        // Retrieve the current like count from localStorage
-        let likeCount = parseInt(localStorage.getItem('likeCount')) || 0;
+        // Function to fetch the like count from the bin
+        function fetchLikeCountFromBin() {
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', 'https://api.jsonbin.io/v3/b/66b12acdacd3cb34a8706047', true);
+            xhr.setRequestHeader('X-Access-Key', 'your-access-key-here'); // Replace with your actual access key
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    const response = JSON.parse(xhr.responseText);
+                    document.getElementById('likeCount').textContent = response.likeCount;
+                }
+            };
+            xhr.send();
+        }
 
-        // Display the like count
-        document.getElementById('likeCount').textContent = likeCount;
+        // Function to update the like count in the bin
+        function updateLikeCountInBin(likeCount) {
+            const xhr = new XMLHttpRequest();
+            xhr.open('PUT', 'https://api.jsonbin.io/v3/b/66b12acdacd3cb34a8706047', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.setRequestHeader('X-Access-Key', 'your-access-key-here'); // Replace with your actual access key
+            xhr.send(JSON.stringify({ likeCount: likeCount }));
+        }
+
+        // Initialize like count from bin
+        fetchLikeCountFromBin();
 
         // Add event listener to the like button
         document.getElementById('likeButton').addEventListener('click', function() {
@@ -84,10 +104,12 @@
                 const likedIPs = JSON.parse(localStorage.getItem('likedIPs')) || [];
                 // Check if the user's IP address is already stored
                 if (!likedIPs.includes(ip)) {
+                    // Increment the like count
+                    let likeCount = parseInt(document.getElementById('likeCount').textContent) || 0;
                     likeCount++;
-                    // Update localStorage with the new like count
+                    // Update the like count in localStorage and bin
                     localStorage.setItem('likeCount', likeCount);
-                    // Update the displayed like count
+                    updateLikeCountInBin(likeCount);
                     document.getElementById('likeCount').textContent = likeCount;
                     // Store the user's IP address in localStorage
                     likedIPs.push(ip);
